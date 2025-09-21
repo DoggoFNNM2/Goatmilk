@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Milk a Goat 🐐</title>
+  <style>
+    /* === Neon Rain Background from Uiverse.io by SelfMadeSystem === */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      background-image:
+        radial-gradient(4px 100px at 0px 235px, #0f0, #0000),
+        radial-gradient(4px 100px at 300px 235px, #0f0, #0000),
+        radial-gradient(1.5px 1.5px at 150px 117.5px, #0f0 100%, #0000 150%),
+        radial-gradient(4px 100px at 0px 252px, #0f0, #0000),
+        radial-gradient(4px 100px at 300px 252px, #0f0, #0000),
+        radial-gradient(1.5px 1.5px at 150px 126px, #0f0 100%, #0000 150%),
+        radial-gradient(4px 100px at 0px 150px, #0f0, #0000),
+        radial-gradient(4px 100px at 300px 150px, #0f0, #0000),
+        radial-gradient(1.5px 1.5px at 150px 75px, #0f0 100%, #0000 150%);
+      background-size:
+        300px 235px,
+        300px 235px,
+        300px 235px,
+        300px 252px,
+        300px 252px,
+        300px 252px,
+        300px 150px,
+        300px 150px,
+        300px 150px;
+      animation: hi 150s linear infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    @keyframes hi {
+      from {
+        background-position:
+          0px 220px, 3px 220px, 151.5px 337.5px,
+          25px 24px, 28px 24px, 176.5px 150px,
+          50px 16px, 53px 16px, 201.5px 91px;
+      }
+      to {
+        background-position:
+          0px 6800px, 3px 6800px, 151.5px 6917.5px,
+          25px 13632px, 28px 13632px, 176.5px 13758px,
+          50px 5416px, 53px 5416px, 201.5px 5491px;
+      }
+    }
+
+    /* Goat styling */
+    img {
+      width: 200px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 15px #0f0);
+      border-radius: 20px;
+    }
+
+    /* Milk Goat Button */
+    .button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 0.6em 2em;
+      border: mediumspringgreen solid 0.15em;
+      border-radius: 0.5em;
+      color: mediumspringgreen;
+      font-size: 1.5em;
+      font-weight: 600;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border 300ms, color 300ms;
+      user-select: none;
+      background: rgba(0, 0, 0, 0.6);
+      margin-bottom: 20px;
+    }
+
+    .button p {
+      z-index: 1;
+    }
+
+    .button:hover {
+      color: #212121;
+    }
+
+    .button:active {
+      border-color: teal;
+    }
+
+    .button::after, .button::before {
+      content: "";
+      position: absolute;
+      width: 9em;
+      aspect-ratio: 1;
+      background: mediumspringgreen;
+      opacity: 50%;
+      border-radius: 50%;
+      transition: transform 500ms, background 300ms;
+    }
+
+    .button::before {
+      left: 0;
+      transform: translateX(-8em);
+    }
+
+    .button::after {
+      right: 0;
+      transform: translateX(8em);
+    }
+
+    .button:hover:before {
+      transform: translateX(-1em);
+    }
+
+    .button:hover:after {
+      transform: translateX(1em);
+    }
+
+    .button:active:before,
+    .button:active:after {
+      background: teal;
+    }
+
+    /* Info panel */
+    .info {
+      font-size: 1.2em;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #0f0;
+      text-align: center;
+      min-width: 220px;
+    }
+
+    .cooldown {
+      color: #ff5555;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="goat.png" alt="Goat">
+    <button class="button" id="milkBtn">
+      <p>Milk Goat</p>
+    </button>
+    <div class="info">
+      GoatCoins: <span id="coins">0</span><br>
+      Money: £<span id="money">0.00</span><br>
+      <span id="status">Hold the button for 3 seconds to milk!</span>
+    </div>
+  </div>
+
+  <script>
+    const milkBtn = document.getElementById("milkBtn");
+    const coinsDisplay = document.getElementById("coins");
+    const moneyDisplay = document.getElementById("money");
+    const statusDisplay = document.getElementById("status");
+
+    // Load GoatCoins
+    let coins = parseInt(localStorage.getItem("goatCoins")) || 0;
+    coinsDisplay.textContent = coins;
+
+    // Load Money
+    let money = parseFloat(localStorage.getItem("money")) || 0;
+    moneyDisplay.textContent = money.toFixed(2);
+
+    // Load cooldown timestamp
+    let cooldownEnd = parseInt(localStorage.getItem("cooldownEnd")) || 0;
+    let cooldown = false;
+    let holdTimer;
+
+    // Check cooldown on page load
+    const now = Date.now();
+    if (cooldownEnd > now) {
+      startCooldown(Math.ceil((cooldownEnd - now) / 1000));
+    }
+
+    milkBtn.addEventListener("mousedown", () => {
+      if (cooldown) return;
+      statusDisplay.textContent = "Keep holding... 🐐";
+      holdTimer = setTimeout(() => {
+        // Add 1 GoatCoin
+        coins++;
+        coinsDisplay.textContent = coins;
+        localStorage.setItem("goatCoins", coins);
+
+        // Add 10 pence
+        money += 0.10;
+        moneyDisplay.textContent = money.toFixed(2);
+        localStorage.setItem("money", money);
+
+        statusDisplay.textContent = "+1 GoatCoin & 10p earned!";
+
+        // Set cooldown timestamp
+        const endTime = Date.now() + 30000; // 30 seconds
+        localStorage.setItem("cooldownEnd", endTime);
+        startCooldown(30);
+      }, 3000);
+    });
+
+    milkBtn.addEventListener("mouseup", () => {
+      clearTimeout(holdTimer);
+      if (!cooldown && !statusDisplay.textContent.includes("earned")) {
+        statusDisplay.textContent = "Hold for 3 seconds to milk!";
+      }
+    });
+
+    function startCooldown(seconds) {
+      cooldown = true;
+      let remaining = seconds || 30;
+      statusDisplay.innerHTML = `Cooldown: <span class="cooldown">${remaining}s</span>`;
+      const cdTimer = setInterval(() => {
+        remaining--;
+        statusDisplay.innerHTML = `Cooldown: <span class="cooldown">${remaining}s</span>`;
+        if (remaining <= 0) {
+          clearInterval(cdTimer);
+          cooldown = false;
+          statusDisplay.textContent = "Ready to milk again!";
+          localStorage.removeItem("cooldownEnd");
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
